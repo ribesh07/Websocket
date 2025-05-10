@@ -32,9 +32,11 @@
 
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
+      
       console.log("Server:", data);
+      const res = data.data.toString();
       if (data.type === "RESPONSE") {
-        document.getElementById("responseBox").value += `[MOBILE] ${data.data}\n`;
+        document.getElementById("responseBox").value += `[MOBILE] ${res}\n`;
       }
     };
 
