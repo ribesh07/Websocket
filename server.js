@@ -1,5 +1,9 @@
 const WebSocket = require("ws");
 const http = require("http");
+const express = require("express");
+const cors = require("cors");
+const bodyParser = require("body-parser");
+const app = express();
 
 const PORT = process.env.PORT || 10000;
 const server = http.createServer();
@@ -73,4 +77,11 @@ wss.on("connection", function connection(ws) {
 
 server.listen(PORT, () => {
   console.log(`WebSocket server running on port ${PORT}`);
+});
+
+app.use(cors());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.get("/", (req, res) => {
+  res.sendFile(__dirname + "/index.html");
 });
