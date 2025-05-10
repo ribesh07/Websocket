@@ -6,6 +6,18 @@ const path = require("path");
 const PORT = process.env.PORT || 10000;
 
 const server = http.createServer((req, res) => {
+  if (req.url === "/status") {
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(
+      JSON.stringify({
+        mobileClients: mobileClients.length,
+        adminClients: adminClients.length,
+        totalClients: wss.clients.size,
+      })
+    );
+    return;
+  }
+
   // Serve the HTML page
   let filePath = "./public" + req.url;
   if (filePath === "./public/") filePath = "./public/index.html";
@@ -35,6 +47,7 @@ let mobileClients = [];
 let adminClients = [];
 
 wss.on("connection", function connection(ws) {
+  console.log("New client connected");
   ws.send(
     JSON.stringify({
       type: "HELLO",
@@ -90,6 +103,8 @@ wss.on("connection", function connection(ws) {
   ws.on("close", () => {
     mobileClients = mobileClients.filter((c) => c !== ws);
     adminClients = adminClients.filter((c) => c !== ws);
+    console.log("Client disconnected");
+    console.log(`Mobile clients: ${mobileClients.length}`);
   });
 });
 
