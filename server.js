@@ -1,12 +1,34 @@
 const WebSocket = require("ws");
 const http = require("http");
-const express = require("express");
-const cors = require("cors");
-const bodyParser = require("body-parser");
-const app = express();
+const fs = require("fs");
+const path = require("path");
 
 const PORT = process.env.PORT || 10000;
-const server = http.createServer();
+
+const server = http.createServer((req, res) => {
+  // Serve the HTML page
+  let filePath = "./public" + req.url;
+  if (filePath === "./public/") filePath = "./public/index.html";
+
+  const extname = String(path.extname(filePath)).toLowerCase();
+  const mimeTypes = {
+    ".html": "text/html",
+    ".js": "application/javascript",
+  };
+
+  fs.readFile(filePath, (error, content) => {
+    if (error) {
+      res.writeHead(404);
+      res.end("Not Found");
+    } else {
+      res.writeHead(200, {
+        "Content-Type": mimeTypes[extname] || "text/plain",
+      });
+      res.end(content, "utf-8");
+    }
+  });
+});
+
 const wss = new WebSocket.Server({ server });
 
 let mobileClients = [];
@@ -21,7 +43,6 @@ wss.on("connection", function connection(ws) {
     try {
       const data = JSON.parse(message);
 
-      // Identification
       if (data.type === "IDENTIFY") {
         if (data.role === "ADMIN") {
           adminClients.push(ws);
@@ -37,7 +58,6 @@ wss.on("connection", function connection(ws) {
         return;
       }
 
-      // Admin sending command to all mobiles
       if (data.type === "COMMAND" && data.to === "MOBILE") {
         mobileClients.forEach((client) => {
           if (client.readyState === WebSocket.OPEN) {
@@ -49,17 +69,10 @@ wss.on("connection", function connection(ws) {
         return;
       }
 
-      // Mobile sending response to all admins
       if (data.type === "RESPONSE" && data.to === "ADMIN") {
         adminClients.forEach((admin) => {
           if (admin.readyState === WebSocket.OPEN) {
-            admin.send(
-              JSON.stringify({
-                type: "RESPONSE",
-                from: "MOBILE",
-                data: data.data,
-              })
-            );
+            admin.send(JSON.stringify({ type: "RESPONSE", data: data.data }));
           }
         });
         return;
@@ -76,12 +89,5 @@ wss.on("connection", function connection(ws) {
 });
 
 server.listen(PORT, () => {
-  console.log(`WebSocket server running on port ${PORT}`);
-});
-
-app.use(cors());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-app.get("/", (req, res) => {
-  res.sendFile(__dirname + "/index.html");
+  console.log(`Server listening on http://localhost:${PORT}`);
 });
