@@ -1,29 +1,54 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebSocket Test</title>
-    <script>
-        const ws = new WebSocket('ws://localhost:10000');
-
-        ws.onopen = () => {
-            console.log('Connected to server');
-            ws.send(JSON.stringify({ type: 'IDENTIFY', role: 'ADMIN' }));
-        };
-
-        ws.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            console.log('Message from server:', data);
-        };
-
-        function sendCommand() {
-            ws.send(JSON.stringify({ type: 'COMMAND', to: 'MOBILE', command: 'Hello Mobile!' }));
-        }
-    </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Panel - WebSocket</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    textarea { width: 100%; height: 200px; }
+    button { margin-top: 10px; padding: 10px 20px; }
+  </style>
 </head>
 <body>
-    <h1>WebSocket Test</h1>
-    <button onclick="sendCommand()">Send Command to Mobile</button>
+  <h2>Admin Panel</h2>
+  <p>Status: <span id="status">Connecting...</span></p>
+
+  <label for="command">Command to send:</label><br>
+  <input type="text" id="command" placeholder=" GET_LOCATION or CAPTURE_FRONT" />
+  <button onclick="sendCommand()">Send to Mobile</button>
+
+  <h3>Responses:</h3>
+  <textarea id="responseBox" readonly></textarea>
+
+  <script>
+    const ws = new WebSocket("wss://websocket-server-2eur.onrender.com"); 
+
+    const statusEl = document.getElementById("status");
+    const responseBox = document.getElementById("responseBox");
+
+    ws.onopen = () => {
+      statusEl.textContent = "Connected";
+      ws.send(JSON.stringify({ type: "IDENTIFY", role: "ADMIN" }));
+    };
+
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      console.log("Server:", data);
+      if (data.type === "RESPONSE") {
+        responseBox.value += `[MOBILE] ${data.data}\n`;
+      }
+    };
+
+    function sendCommand() {
+      const cmd = document.getElementById("command").value;
+      if (!cmd) return alert("Please enter a command.");
+      ws.send(JSON.stringify({
+        type: "COMMAND",
+        to: "MOBILE",
+        command: cmd
+      }));
+    }
+  </script>
 </body>
 </html>
