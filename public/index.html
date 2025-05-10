@@ -15,38 +15,36 @@
   <p>Status: <span id="status">Connecting...</span></p>
 
   <label for="command">Command to send:</label><br>
-  <input type="text" id="command" placeholder=" GET_LOCATION or CAPTURE_FRONT" />
+  <input type="text" id="command" placeholder="GET_LOCATION or CAPTURE_FRONT" />
   <button onclick="sendCommand()">Send to Mobile</button>
 
   <h3>Responses:</h3>
   <textarea id="responseBox" readonly></textarea>
 
   <script>
-    const ws = new WebSocket("wss://websocket-server-2eur.onrender.com"); 
-
-    const statusEl = document.getElementById("status");
-    const responseBox = document.getElementById("responseBox");
+    const ws = new WebSocket("wss://websocket-server-2eur.onrender.com");
 
     ws.onopen = () => {
-      statusEl.textContent = "Connected";
+      document.getElementById("status").textContent = "Connected";
       ws.send(JSON.stringify({ type: "IDENTIFY", role: "ADMIN" }));
+      console.log("Connected to WebSocket server");
     };
 
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
       console.log("Server:", data);
       if (data.type === "RESPONSE") {
-        responseBox.value += `[MOBILE] ${data.data}\n`;
+        document.getElementById("responseBox").value += `[MOBILE] ${data.data}\n`;
       }
     };
 
     function sendCommand() {
-      const cmd = document.getElementById("command").value;
-      if (!cmd) return alert("Please enter a command.");
+      const command = document.getElementById("command").value;
+      if (!command) return alert("Please enter a command.");
       ws.send(JSON.stringify({
         type: "COMMAND",
         to: "MOBILE",
-        command: cmd
+        command: command
       }));
     }
   </script>

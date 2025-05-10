@@ -36,18 +36,23 @@ let adminClients = [];
 
 wss.on("connection", function connection(ws) {
   ws.send(
-    JSON.stringify({ type: "HELLO", message: "Identify as ADMIN or MOBILE" })
+    JSON.stringify({
+      type: "HELLO",
+      message: "Identify as ADMIN or MOBILE",
+      command: "PING",
+    })
   );
 
   ws.on("message", function incoming(message) {
     try {
       const data = JSON.parse(message);
+      console.log(`[>] ${message.toString()}`);
 
       if (data.type === "IDENTIFY") {
         if (data.role === "ADMIN") {
           adminClients.push(ws);
           ws.send(
-            JSON.stringify({ type: "INFO", message: "Identified as ADMIN" })
+            JSON.stringify({ type: "INFO", message: "Identified as ADMIN !" })
           );
         } else if (data.role === "MOBILE") {
           mobileClients.push(ws);
