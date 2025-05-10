@@ -34,7 +34,7 @@
       const data = JSON.parse(event.data);
       
       console.log("Server:", data);
-      const res = data.data.toString();
+      const res = JSON.stringify(data.data);
       if (data.type === "RESPONSE") {
         document.getElementById("responseBox").value += `[MOBILE] ${res}\n`;
       }
