@@ -46,17 +46,16 @@ const wss = new WebSocket.Server({ server });
 let mobileClients = [];
 let adminClients = [];
 
-// wss.on("connection", function connection(ws) {
-//   console.log("New client connected");
-//   ws.send(
-//     JSON.stringify({
-//       type: "HELLO",
-//       message: "Identify as ADMIN or MOBILE",
-//       command: "PING",
-//     })
-//   );
+wss.on("connection", function connection(ws) {
+  console.log("New client connected");
+  ws.send(
+    JSON.stringify({
+      type: "HELLO",
+      message: "Identify as ADMIN or MOBILE",
+      command: "PING",
+    })
+  );
 // Broadcast to all clients including sender
-wss.on('connection', (ws) => {
   ws.on('message', (data) => {
     const msg = JSON.parse(data);
     const payload = JSON.stringify(msg);
@@ -67,52 +66,51 @@ wss.on('connection', (ws) => {
       }
     }
   });
-});
 
 
-  ws.on("message", function incoming(message) {
-    try {
-      const data = JSON.parse(message);
-      console.log(`[>] ${message.toString()}`);
+  // ws.on("message", function incoming(message) {
+  //   try {
+  //     const data = JSON.parse(message);
+  //     console.log(`[>] ${message.toString()}`);
 
-      if (data.type === "IDENTIFY") {
-        if (data.role === "ADMIN") {
-          adminClients.push(ws);
-          ws.send(
-            JSON.stringify({ type: "INFO", message: "Identified as ADMIN !" })
-          );
-        } else if (data.role === "MOBILE") {
-          mobileClients.push(ws);
-          ws.send(
-            JSON.stringify({ type: "INFO", message: "Identified as MOBILE" })
-          );
-        }
-        return;
-      }
+  //     if (data.type === "IDENTIFY") {
+  //       if (data.role === "ADMIN") {
+  //         adminClients.push(ws);
+  //         ws.send(
+  //           JSON.stringify({ type: "INFO", message: "Identified as ADMIN !" })
+  //         );
+  //       } else if (data.role === "MOBILE") {
+  //         mobileClients.push(ws);
+  //         ws.send(
+  //           JSON.stringify({ type: "INFO", message: "Identified as MOBILE" })
+  //         );
+  //       }
+  //       return;
+  //     }
 
-      if (data.type === "COMMAND" && data.to === "MOBILE") {
-        mobileClients.forEach((client) => {
-          if (client.readyState === WebSocket.OPEN) {
-            client.send(
-              JSON.stringify({ type: "COMMAND", command: data.command })
-            );
-          }
-        });
-        return;
-      }
+  //     if (data.type === "COMMAND" && data.to === "MOBILE") {
+  //       mobileClients.forEach((client) => {
+  //         if (client.readyState === WebSocket.OPEN) {
+  //           client.send(
+  //             JSON.stringify({ type: "COMMAND", command: data.command })
+  //           );
+  //         }
+  //       });
+  //       return;
+  //     }
 
-      if (data.type === "RESPONSE" && data.to === "ADMIN") {
-        adminClients.forEach((admin) => {
-          if (admin.readyState === WebSocket.OPEN) {
-            admin.send(JSON.stringify({ type: "RESPONSE", data: data.data }));
-          }
-        });
-        return;
-      }
-    } catch (err) {
-      ws.send(JSON.stringify({ type: "ERROR", message: "Invalid JSON" }));
-    }
-  });
+  //     if (data.type === "RESPONSE" && data.to === "ADMIN") {
+  //       adminClients.forEach((admin) => {
+  //         if (admin.readyState === WebSocket.OPEN) {
+  //           admin.send(JSON.stringify({ type: "RESPONSE", data: data.data }));
+  //         }
+  //       });
+  //       return;
+  //     }
+  //   } catch (err) {
+  //     ws.send(JSON.stringify({ type: "ERROR", message: "Invalid JSON" }));
+  //   }
+  // });
 
   ws.on("close", () => {
     mobileClients = mobileClients.filter((c) => c !== ws);
