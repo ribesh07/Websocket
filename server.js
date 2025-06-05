@@ -46,15 +46,29 @@ const wss = new WebSocket.Server({ server });
 let mobileClients = [];
 let adminClients = [];
 
-wss.on("connection", function connection(ws) {
-  console.log("New client connected");
-  ws.send(
-    JSON.stringify({
-      type: "HELLO",
-      message: "Identify as ADMIN or MOBILE",
-      command: "PING",
-    })
-  );
+// wss.on("connection", function connection(ws) {
+//   console.log("New client connected");
+//   ws.send(
+//     JSON.stringify({
+//       type: "HELLO",
+//       message: "Identify as ADMIN or MOBILE",
+//       command: "PING",
+//     })
+//   );
+// Broadcast to all clients including sender
+wss.on('connection', (ws) => {
+  ws.on('message', (data) => {
+    const msg = JSON.parse(data);
+    const payload = JSON.stringify(msg);
+
+    for (let client of clients) {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(payload);
+      }
+    }
+  });
+});
+
 
   ws.on("message", function incoming(message) {
     try {
